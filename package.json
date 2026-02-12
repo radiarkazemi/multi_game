@@ -1,0 +1,8 @@
+{
+  "name": "zarb-yar",
+  "version": "1.0.0",
+  "description": "بازی جدول ضرب با تابلوی امتیازات",
+  "dependencies": {
+    "@netlify/blobs": "^8.0.0"
+  }
+}
