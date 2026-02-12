@@ -3,10 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ضرب‌یار | بازی جدول ضرب</title>
+<title>🎯 ضرب‌یار | بازی جدول ضرب</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;900&display=swap" rel="stylesheet">
 <style>
+/* ══════════════════════════════════════════
+   RESET & VARIABLES
+══════════════════════════════════════════ */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
 :root {
@@ -33,6 +36,10 @@ html, body {
   overflow-x: hidden;
 }
 
+/* ══════════════════════════════════════════
+   BACKGROUND EFFECTS
+══════════════════════════════════════════ */
+/* Noise texture */
 body::before {
   content: '';
   position: fixed; inset: 0;
@@ -40,6 +47,7 @@ body::before {
   pointer-events: none; z-index: 0; opacity: 0.5;
 }
 
+/* Ambient glow blobs */
 .blob {
   position: fixed; border-radius: 50%;
   filter: blur(80px); pointer-events: none; z-index: 0; opacity: 0.12;
@@ -51,7 +59,36 @@ body::before {
 @keyframes b2{0%,100%{transform:translate(0,0);}50%{transform:translate(30px,-20px);}}
 @keyframes b3{0%,100%{transform:translate(-50%,-50%) scale(1);}50%{transform:translate(-50%,-50%) scale(1.3);}}
 
-/* ── screens ── */
+/* Floating clouds */
+.cloud {
+  position: fixed;
+  background: rgba(255,255,255,0.12);
+  border-radius: 100px;
+  animation: floatCloud linear infinite;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(1px);
+}
+.cloud::before, .cloud::after {
+  content: '';
+  position: absolute;
+  background: rgba(255,255,255,0.12);
+  border-radius: 100px;
+}
+.cloud-1 { width:110px;height:44px;top:12%;animation-duration:50s; }
+.cloud-1::before { width:54px;height:54px;top:-27px;left:16px; }
+.cloud-1::after  { width:64px;height:44px;top:-16px;right:16px; }
+.cloud-2 { width:130px;height:50px;top:68%;animation-duration:65s;animation-delay:12s; }
+.cloud-2::before { width:60px;height:60px;top:-30px;left:20px; }
+.cloud-2::after  { width:70px;height:50px;top:-20px;right:20px; }
+.cloud-3 { width:90px;height:36px;top:40%;animation-duration:44s;animation-delay:25s; }
+.cloud-3::before { width:44px;height:44px;top:-22px;left:12px; }
+.cloud-3::after  { width:52px;height:36px;top:-13px;right:12px; }
+@keyframes floatCloud { from{left:-210px;} to{left:110%;} }
+
+/* ══════════════════════════════════════════
+   SCREEN SYSTEM
+══════════════════════════════════════════ */
 .screen {
   position: relative; z-index: 1;
   min-height: 100dvh;
@@ -61,7 +98,9 @@ body::before {
 }
 .screen.hidden { display: none !important; }
 
-/* ════════════ NAME ENTRY ════════════ */
+/* ══════════════════════════════════════════
+   NAME ENTRY SCREEN
+══════════════════════════════════════════ */
 .name-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -70,362 +109,462 @@ body::before {
   width: 100%; max-width: 440px;
   text-align: center;
   box-shadow: var(--shadow);
+  animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
 }
-.brand-icon { font-size: 56px; display:block; margin-bottom:10px; animation: iconFloat 3s ease-in-out infinite; }
-@keyframes iconFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+@keyframes cardIn { from{opacity:0;transform:scale(0.9) translateY(20px);} to{opacity:1;transform:scale(1) translateY(0);} }
+
+.brand-icon {
+  font-size: 60px; display: block; margin-bottom: 10px;
+  animation: iconFloat 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(108,143,255,0.5));
+}
+@keyframes iconFloat { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+
 .brand-title {
-  font-size: clamp(28px,7vw,42px); font-weight:900;
+  font-size: clamp(30px,7vw,44px); font-weight: 900; letter-spacing: -1px;
   background: linear-gradient(135deg,var(--accent),var(--accent2));
   -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-  letter-spacing:-1px; margin-bottom:6px;
+  margin-bottom: 6px;
 }
-.brand-sub { color:var(--muted); font-size:15px; margin-bottom:32px; }
+.brand-sub { color: var(--muted); font-size: 15px; margin-bottom: 32px; }
 
 .name-input {
-  width: 100%;
-  padding: 16px 20px;
-  background: var(--card);
-  border: 2px solid var(--border);
+  width: 100%; padding: 16px 20px;
+  background: var(--card); border: 2px solid var(--border);
   border-radius: var(--radius);
-  font-size: 18px;
-  font-family: 'Vazirmatn','Tahoma',sans-serif;
-  color: var(--text);
-  text-align: right;
-  outline: none;
-  transition: border-color 0.2s;
-  margin-bottom: 10px;
+  font-size: 18px; font-family: 'Vazirmatn','Tahoma',sans-serif;
+  color: var(--text); text-align: right; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  margin-bottom: 8px;
 }
-.name-input:focus { border-color: var(--accent); }
+.name-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(108,143,255,0.2);
+}
 .name-input::placeholder { color: var(--muted); }
-.name-error { color: var(--red); font-size:13px; min-height:20px; margin-bottom:14px; text-align:right; }
+.name-error { color: var(--red); font-size: 13px; min-height: 20px; margin-bottom: 14px; text-align: right; }
 
 .btn-primary {
-  width: 100%;
-  padding: 16px;
+  width: 100%; padding: 16px;
   background: linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff; border:none;
-  border-radius: var(--radius);
-  font-size:18px; font-weight:700;
-  font-family:'Vazirmatn','Tahoma',sans-serif;
-  cursor:pointer;
-  transition: all 0.25s;
+  color: #fff; border: none; border-radius: var(--radius);
+  font-size: 18px; font-weight: 700; font-family: 'Vazirmatn','Tahoma',sans-serif;
+  cursor: pointer; transition: all 0.25s;
   box-shadow: 0 4px 24px rgba(108,143,255,0.4);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
-.btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(108,143,255,0.55); }
-.btn-primary:active { transform:translateY(0); }
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(108,143,255,0.55); }
+.btn-primary:active { transform: translateY(0); }
 
 .btn-ghost {
-  background:transparent; border:1px solid var(--border);
-  color:var(--muted); padding:12px 20px;
-  border-radius:50px; font-size:14px; font-weight:600;
-  font-family:'Vazirmatn','Tahoma',sans-serif;
-  cursor:pointer; transition:all 0.2s; width:100%;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); padding: 12px 20px;
+  border-radius: 50px; font-size: 14px; font-weight: 600;
+  font-family: 'Vazirmatn','Tahoma',sans-serif;
+  cursor: pointer; transition: all 0.2s; width: 100%;
 }
-.btn-ghost:hover { border-color:var(--accent); color:var(--text); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--text); }
 
-/* ════════════ SETTINGS ════════════ */
+/* ══════════════════════════════════════════
+   SETTINGS SCREEN
+══════════════════════════════════════════ */
 .settings-card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:24px; padding:clamp(24px,5vw,40px);
-  width:100%; max-width:520px; box-shadow:var(--shadow);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: clamp(24px,5vw,40px);
+  width: 100%; max-width: 520px;
+  box-shadow: var(--shadow);
+  animation: cardIn 0.4s ease;
 }
 .back-link {
-  display:flex; align-items:center; gap:6px;
-  color:var(--muted); font-size:14px; font-weight:600;
-  cursor:pointer; margin-bottom:20px;
-  background:none; border:none; font-family:'Vazirmatn','Tahoma',sans-serif;
-  transition:color 0.2s;
+  display: flex; align-items: center; gap: 6px;
+  color: var(--muted); font-size: 14px; font-weight: 600;
+  cursor: pointer; margin-bottom: 20px;
+  background: none; border: none; font-family: 'Vazirmatn','Tahoma',sans-serif;
+  transition: color 0.2s;
 }
-.back-link:hover { color:var(--text); }
-
+.back-link:hover { color: var(--text); }
 .player-greeting {
-  background:var(--card); border:1px solid var(--border);
-  border-radius:12px; padding:12px 16px;
-  font-size:16px; font-weight:600;
-  color:var(--accent); margin-bottom:20px;
-  text-align:center;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px;
+  font-size: 16px; font-weight: 600; color: var(--accent);
+  margin-bottom: 20px; text-align: center;
 }
-
-.setting-section { margin-bottom:22px; }
+.setting-section { margin-bottom: 22px; }
 .setting-label {
-  font-size:12px; font-weight:700; color:var(--muted);
-  text-transform:uppercase; letter-spacing:1px;
-  margin-bottom:12px; display:flex; align-items:center; gap:6px;
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
 }
-.chip-group { display:flex; gap:8px; flex-wrap:wrap; }
-.chip { position:relative; }
-.chip input[type="radio"] { position:absolute; opacity:0; width:0; height:0; }
+.chip-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { position: relative; }
+.chip input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
 .chip label {
-  display:block; padding:10px 18px;
-  background:var(--card); border:2px solid var(--border);
-  border-radius:50px; cursor:pointer;
-  font-size:14px; font-family:'Vazirmatn','Tahoma',sans-serif;
-  font-weight:600; color:var(--muted);
-  transition:all 0.2s; white-space:nowrap; user-select:none;
+  display: block; padding: 10px 18px;
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: 50px; cursor: pointer;
+  font-size: 14px; font-family: 'Vazirmatn','Tahoma',sans-serif;
+  font-weight: 600; color: var(--muted);
+  transition: all 0.2s; white-space: nowrap; user-select: none;
 }
-.chip label:hover { border-color:var(--accent); color:var(--text); }
+.chip label:hover { border-color: var(--accent); color: var(--text); transform: translateY(-2px); }
 .chip input:checked + label {
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-color:transparent; color:#fff;
-  box-shadow:0 4px 16px rgba(108,143,255,0.4);
+  background: linear-gradient(135deg,var(--accent),var(--accent2));
+  border-color: transparent; color: #fff;
+  box-shadow: 0 4px 16px rgba(108,143,255,0.4);
 }
-.sep { height:1px; background:var(--border); margin:20px 0; }
+.sep { height: 1px; background: var(--border); margin: 20px 0; }
 
-/* ════════════ GAME ════════════ */
+/* ══════════════════════════════════════════
+   GAME SCREEN
+══════════════════════════════════════════ */
 .game-wrap {
-  width:100%; max-width:600px;
-  display:flex; flex-direction:column; gap:12px;
+  width: 100%; max-width: 620px;
+  display: flex; flex-direction: column; gap: 12px;
 }
+
+/* top bar */
 .top-bar {
-  display:flex; align-items:center;
-  justify-content:space-between; gap:8px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 8px;
+  flex-wrap: wrap;
 }
 .icon-btn {
-  background:var(--card); border:1px solid var(--border);
-  border-radius:10px; padding:9px 13px;
-  font-size:18px; cursor:pointer; color:var(--muted);
-  transition:all 0.2s; line-height:1;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 9px 13px;
+  font-size: 18px; cursor: pointer; color: var(--muted);
+  transition: all 0.2s; line-height: 1;
 }
-.icon-btn:hover { color:var(--text); border-color:var(--accent); }
+.icon-btn:hover { color: var(--text); border-color: var(--accent); transform: translateY(-1px); }
+
 .level-pill {
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  color:#fff; padding:9px 18px; border-radius:50px;
-  font-size:clamp(12px,3.5vw,15px); font-weight:700;
-  box-shadow:0 2px 12px rgba(108,143,255,0.3);
-  text-align:center; flex:1;
+  background: linear-gradient(135deg,var(--accent),var(--accent2));
+  color: #fff; padding: 9px 18px; border-radius: 50px;
+  font-size: clamp(12px,3.2vw,15px); font-weight: 700;
+  box-shadow: 0 2px 12px rgba(108,143,255,0.35);
+  text-align: center; flex: 1;
 }
 .score-pill {
-  background:var(--card); border:1px solid var(--border);
-  padding:9px 14px; border-radius:50px;
-  font-size:14px; font-weight:700; color:var(--yellow); white-space:nowrap;
+  background: var(--card); border: 1px solid var(--border);
+  padding: 9px 14px; border-radius: 50px;
+  font-size: 14px; font-weight: 700; color: var(--yellow); white-space: nowrap;
+  transition: transform 0.2s;
+}
+.score-pill.bump { animation: scoreBump 0.3s ease; }
+@keyframes scoreBump { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
+
+/* progress */
+.progress-track { height: 6px; background: var(--card); border-radius: 99px; overflow: hidden; }
+.progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius: 99px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
 }
 
-.progress-track { height:6px; background:var(--card); border-radius:99px; overflow:hidden; }
-.progress-bar {
-  height:100%;
-  background:linear-gradient(90deg,var(--accent),var(--accent2));
-  border-radius:99px; transition:width 0.5s cubic-bezier(0.4,0,0.2,1);
-}
-.timer-track { height:5px; background:var(--card); border-radius:99px; overflow:hidden; display:none; }
-.timer-track.on { display:block; }
-.timer-bar { height:100%; background:var(--green); border-radius:99px; width:100%; transition:background 0.5s; }
-.timer-bar.warn   { background:var(--yellow); }
-.timer-bar.danger { background:var(--red); animation:timerPulse 0.4s infinite; }
-@keyframes timerPulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+/* timer bar */
+.timer-track { height: 5px; background: var(--card); border-radius: 99px; overflow: hidden; display: none; }
+.timer-track.on { display: block; }
+.timer-bar { height: 100%; background: var(--green); border-radius: 99px; width: 100%; transition: background 0.5s; }
+.timer-bar.warn   { background: var(--yellow); }
+.timer-bar.danger { background: var(--red); animation: dangerPulse 0.4s infinite; }
+@keyframes dangerPulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
 
 .q-meta {
-  display:flex; justify-content:space-between;
-  font-size:12px; color:var(--muted); font-weight:600;
+  display: flex; justify-content: space-between;
+  font-size: 12px; color: var(--muted); font-weight: 600;
 }
 
+/* ── ANSWER BUBBLE ── */
 .answer-bubble {
-  background:var(--surface); border:2px solid var(--border);
-  border-radius:24px; text-align:center;
-  padding:clamp(22px,5vw,40px) 20px;
-  position:relative; overflow:hidden;
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: 24px; text-align: center;
+  padding: clamp(24px,5vw,42px) 20px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.3s;
 }
 .answer-bubble::before {
-  content:''; position:absolute; inset:0;
-  background:radial-gradient(ellipse at 50% 0%,rgba(108,143,255,0.1),transparent 70%);
-  pointer-events:none;
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 0%,rgba(108,143,255,0.12),transparent 70%);
+  pointer-events: none;
 }
-.answer-label { font-size:12px; color:var(--muted); font-weight:700; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+.answer-bubble.correct-glow { border-color: var(--green); }
+.answer-bubble.wrong-glow   { border-color: var(--red); }
+
+.answer-label {
+  font-size: 12px; color: var(--muted); font-weight: 700;
+  letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
+}
 .answer-number {
-  font-size:clamp(68px,18vw,100px); font-weight:900; line-height:1;
-  background:linear-gradient(135deg,#fff 30%,var(--accent2));
-  -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
-  filter:drop-shadow(0 0 30px rgba(167,139,250,0.3));
+  font-size: clamp(70px,18vw,100px); font-weight: 900; line-height: 1;
+  background: linear-gradient(135deg,#fff 30%,var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(167,139,250,0.35));
 }
-.answer-number.pop { animation:numPop 0.35s cubic-bezier(0.36,0.07,0.19,0.97); }
-@keyframes numPop{0%{transform:scale(0.7);opacity:0;}60%{transform:scale(1.08);}100%{transform:scale(1);opacity:1;}}
+.answer-number.pop { animation: numPop 0.4s cubic-bezier(0.36,0.07,0.19,0.97); }
+@keyframes numPop { 0%{transform:scale(0.6);opacity:0;} 60%{transform:scale(1.1);} 100%{transform:scale(1);opacity:1;} }
 
-.hint-row { display:flex; justify-content:center; min-height:34px; align-items:center; gap:10px; }
+/* hint */
+.hint-row { display: flex; justify-content: center; min-height: 36px; align-items: center; gap: 10px; }
 .hint-btn {
-  background:transparent; border:1px solid var(--border);
-  border-radius:50px; padding:6px 16px;
-  font-size:13px; color:var(--muted); cursor:pointer;
-  font-family:'Vazirmatn','Tahoma',sans-serif; font-weight:600;
-  transition:all 0.2s; display:none;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 50px; padding: 7px 18px;
+  font-size: 13px; color: var(--muted); cursor: pointer;
+  font-family: 'Vazirmatn','Tahoma',sans-serif; font-weight: 600;
+  transition: all 0.2s; display: none;
 }
-.hint-btn:hover { border-color:var(--yellow); color:var(--yellow); }
-.hint-btn:disabled { opacity:0.35; cursor:not-allowed; }
+.hint-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+.hint-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .hint-chip {
-  background:rgba(251,191,36,0.12); border:1px solid rgba(251,191,36,0.3);
-  border-radius:8px; padding:6px 14px;
-  font-size:14px; color:var(--yellow); font-weight:600;
-  display:none; animation:fadeIn 0.3s ease;
+  background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 8px; padding: 7px 14px;
+  font-size: 14px; color: var(--yellow); font-weight: 600;
+  display: none; animation: chipIn 0.3s ease;
 }
-.hint-chip.show { display:block; }
-@keyframes fadeIn{from{opacity:0;transform:translateY(-4px);}to{opacity:1;transform:translateY(0);}}
+.hint-chip.show { display: block; }
+@keyframes chipIn { from{opacity:0;transform:translateY(-6px);} to{opacity:1;transform:translateY(0);} }
 
-.options-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-@media(min-width:560px){ .options-grid { grid-template-columns:repeat(4,1fr); } }
+/* ── OPTIONS ── */
+.options-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+@media(min-width:560px) { .options-grid { grid-template-columns: repeat(4,1fr); } }
 
 .opt-btn {
-  background:var(--card); border:2px solid var(--border);
-  border-radius:var(--radius);
-  padding:clamp(14px,4vw,22px) 10px;
-  font-size:clamp(17px,4.5vw,24px); font-weight:700;
-  font-family:'Vazirmatn','Tahoma',sans-serif;
-  color:var(--text); cursor:pointer;
-  transition:all 0.2s cubic-bezier(0.4,0,0.2,1);
-  text-align:center; position:relative; overflow:hidden;
-  user-select:none; -webkit-tap-highlight-color:transparent;
+  background: var(--card); border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: clamp(16px,4vw,24px) 10px;
+  font-size: clamp(17px,4.5vw,24px); font-weight: 700;
+  font-family: 'Vazirmatn','Tahoma',sans-serif;
+  color: var(--text); cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  text-align: center; user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative; overflow: hidden;
 }
-.opt-btn:hover { border-color:var(--accent); transform:translateY(-3px); box-shadow:0 8px 24px rgba(108,143,255,0.25); }
-.opt-btn:active { transform:translateY(0); }
-.opt-btn.correct { background:rgba(52,211,153,0.15); border-color:var(--green); color:var(--green); animation:correctPop 0.4s ease; }
-.opt-btn.wrong   { background:rgba(248,113,113,0.12); border-color:var(--red);   color:var(--red);   animation:wrongShake 0.35s ease; }
-@keyframes correctPop{0%{transform:scale(1);}40%{transform:scale(1.07);}100%{transform:scale(1);}}
-@keyframes wrongShake{0%,100%{transform:translateX(0);}25%{transform:translateX(-6px);}75%{transform:translateX(6px);}}
+/* shimmer on hover */
+.opt-btn::after {
+  content: '';
+  position: absolute; top: -50%; left: -75%;
+  width: 50%; height: 200%;
+  background: linear-gradient(to right,transparent,rgba(255,255,255,0.12),transparent);
+  transform: skewX(-20deg);
+  transition: left 0.4s;
+}
+.opt-btn:hover::after { left: 125%; }
+.opt-btn:hover {
+  border-color: var(--accent); transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(108,143,255,0.3);
+}
+.opt-btn:active { transform: translateY(-1px); }
 
-.feedback { text-align:center; font-size:clamp(15px,4vw,19px); font-weight:700; min-height:30px; padding:4px 0; }
-.feedback.ok   { color:var(--green); }
-.feedback.bad  { color:var(--red); }
-.feedback.info { color:var(--accent); }
+/* floating animation – staggered */
+.opt-btn { animation: optFloat 3s ease-in-out infinite; }
+.opt-btn:nth-child(1) { animation-delay: 0s; }
+.opt-btn:nth-child(2) { animation-delay: 0.4s; }
+.opt-btn:nth-child(3) { animation-delay: 0.8s; }
+.opt-btn:nth-child(4) { animation-delay: 1.2s; }
+@keyframes optFloat {
+  0%,100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+.opt-btn:hover { animation-play-state: paused; }
 
-/* ════════════ LEADERBOARD MODAL ════════════ */
+.opt-btn.correct {
+  background: rgba(52,211,153,0.18); border-color: var(--green); color: var(--green);
+  animation: correctPop 0.45s ease forwards;
+}
+.opt-btn.wrong {
+  background: rgba(248,113,113,0.15); border-color: var(--red); color: var(--red);
+  animation: wrongShake 0.4s ease forwards;
+}
+@keyframes correctPop { 0%{transform:scale(1);} 35%{transform:scale(1.1);} 70%{transform:scale(0.97);} 100%{transform:scale(1);} }
+@keyframes wrongShake { 0%,100%{transform:translateX(0);} 20%{transform:translateX(-8px);} 60%{transform:translateX(8px);} }
+
+/* feedback */
+.feedback {
+  text-align: center; font-size: clamp(16px,4vw,20px);
+  font-weight: 700; min-height: 32px; padding: 4px 0;
+  transition: all 0.3s;
+}
+.feedback.ok   { color: var(--green); }
+.feedback.bad  { color: var(--red); }
+.feedback.info { color: var(--accent); }
+
+/* ── FLOATING STARS (burst on correct) ── */
+.star-layer { position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden; }
+.fstar {
+  position: absolute; font-size: 28px;
+  animation: fstar 1s ease-out forwards;
+}
+@keyframes fstar {
+  0%   { opacity: 0; transform: scale(0) rotate(0deg) translateY(0); }
+  30%  { opacity: 1; transform: scale(1.4) rotate(120deg) translateY(-15px); }
+  100% { opacity: 0; transform: scale(0.6) rotate(280deg) translateY(-70px); }
+}
+
+/* ══════════════════════════════════════════
+   LEADERBOARD MODAL
+══════════════════════════════════════════ */
 .modal-overlay {
-  position:fixed; inset:0; background:rgba(0,0,0,0.7);
-  z-index:100; display:flex; align-items:center; justify-content:center;
-  padding:16px; backdrop-filter:blur(4px);
-  animation:overlayIn 0.2s ease;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+  z-index: 100; display: flex; align-items: center; justify-content: center;
+  padding: 16px; backdrop-filter: blur(6px);
+  animation: overlayIn 0.2s ease;
 }
-.modal-overlay.hidden { display:none; }
-@keyframes overlayIn{from{opacity:0;}to{opacity:1;}}
+.modal-overlay.hidden { display: none; }
+@keyframes overlayIn { from{opacity:0;} to{opacity:1;} }
 
 .modal {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:24px; width:100%; max-width:480px;
-  max-height:90dvh; overflow:hidden;
-  display:flex; flex-direction:column;
-  box-shadow:0 24px 60px rgba(0,0,0,0.6);
-  animation:modalIn 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 24px; width: 100%; max-width: 480px;
+  max-height: 88dvh; overflow: hidden;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6);
+  animation: modalIn 0.28s cubic-bezier(0.34,1.56,0.64,1);
 }
-@keyframes modalIn{from{transform:scale(0.9);opacity:0;}to{transform:scale(1);opacity:1;}}
+@keyframes modalIn { from{transform:scale(0.88);opacity:0;} to{transform:scale(1);opacity:1;} }
 
 .modal-head {
-  display:flex; align-items:center; justify-content:space-between;
-  padding:20px 24px 16px; border-bottom:1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
 }
-.modal-title { font-size:20px; font-weight:900; }
+.modal-title { font-size: 20px; font-weight: 900; }
 .modal-close {
-  background:var(--card); border:1px solid var(--border);
-  border-radius:8px; padding:6px 10px; font-size:16px;
-  cursor:pointer; color:var(--muted); transition:all 0.2s;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 11px; font-size: 16px;
+  cursor: pointer; color: var(--muted); transition: all 0.2s;
 }
-.modal-close:hover { color:var(--text); }
+.modal-close:hover { color: var(--text); border-color: var(--red); }
 
-.modal-body { overflow-y:auto; padding:16px 24px 24px; flex:1; }
+.modal-body { overflow-y: auto; padding: 16px 24px 24px; flex: 1; }
 
-.lb-filter {
-  display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;
+.lb-tabs {
+  display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap;
 }
-.lb-filter-btn {
-  padding:7px 16px; border-radius:50px; font-size:13px; font-weight:600;
-  font-family:'Vazirmatn','Tahoma',sans-serif;
-  border:1px solid var(--border); background:var(--card);
-  color:var(--muted); cursor:pointer; transition:all 0.2s;
+.lb-tab {
+  padding: 7px 16px; border-radius: 50px; font-size: 13px; font-weight: 600;
+  font-family: 'Vazirmatn','Tahoma',sans-serif;
+  border: 1px solid var(--border); background: var(--card);
+  color: var(--muted); cursor: pointer; transition: all 0.2s;
 }
-.lb-filter-btn.active {
-  background:linear-gradient(135deg,var(--accent),var(--accent2));
-  border-color:transparent; color:#fff;
+.lb-tab.active {
+  background: linear-gradient(135deg,var(--accent),var(--accent2));
+  border-color: transparent; color: #fff;
 }
 
-.lb-loading { text-align:center; color:var(--muted); padding:40px 0; font-size:15px; }
-
-.lb-list { display:flex; flex-direction:column; gap:8px; }
+.lb-list { display: flex; flex-direction: column; gap: 8px; }
+.lb-empty { text-align: center; color: var(--muted); padding: 40px 0; font-size: 15px; }
+.lb-loading { text-align: center; color: var(--muted); padding: 40px 0; font-size: 24px; }
 
 .lb-row {
-  display:flex; align-items:center; gap:12px;
-  background:var(--card); border:1px solid var(--border);
-  border-radius:12px; padding:12px 16px;
-  transition:border-color 0.2s;
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 16px;
+  transition: all 0.2s;
+  animation: rowIn 0.3s ease both;
 }
-.lb-row.me { border-color:var(--accent); background:rgba(108,143,255,0.08); }
-.lb-row.top1 { border-color:var(--yellow); background:rgba(251,191,36,0.07); }
-.lb-row.top2 { border-color:#9ca3af; background:rgba(156,163,175,0.07); }
-.lb-row.top3 { border-color:#cd7c2f; background:rgba(205,124,47,0.07); }
+@keyframes rowIn { from{opacity:0;transform:translateX(-10px);} to{opacity:1;transform:translateX(0);} }
+.lb-row.me    { border-color: var(--accent); background: rgba(108,143,255,0.08); }
+.lb-row.top-1 { border-color: var(--yellow); background: rgba(251,191,36,0.07); }
+.lb-row.top-2 { border-color: #9ca3af;       background: rgba(156,163,175,0.06); }
+.lb-row.top-3 { border-color: #cd7c2f;       background: rgba(205,124,47,0.06); }
 
-.lb-rank { font-size:18px; width:32px; text-align:center; flex-shrink:0; }
-.lb-name { flex:1; font-size:15px; font-weight:700; }
-.lb-meta { font-size:12px; color:var(--muted); }
-.lb-score { font-size:17px; font-weight:900; color:var(--yellow); }
-
-.lb-empty { text-align:center; color:var(--muted); padding:32px 0; }
-
-/* teacher delete btn */
+.lb-rank { font-size: 20px; width: 34px; text-align: center; flex-shrink: 0; }
+.lb-info { flex: 1; min-width: 0; }
+.lb-name { font-size: 15px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.lb-score-val { font-size: 18px; font-weight: 900; color: var(--yellow); }
 .lb-del {
-  background:none; border:none; color:var(--muted);
-  cursor:pointer; font-size:14px; padding:4px;
-  display:none; transition:color 0.2s;
+  background: none; border: none; color: var(--muted);
+  cursor: pointer; font-size: 16px; padding: 4px 6px;
+  display: none; transition: color 0.2s; border-radius: 6px;
 }
-.teacher-mode .lb-del { display:block; }
-.lb-del:hover { color:var(--red); }
+.lb-del:hover { color: var(--red); background: rgba(248,113,113,0.1); }
+.teacher-mode .lb-del { display: block; }
 
-/* ════════════ END SCREEN ════════════ */
+/* ══════════════════════════════════════════
+   END SCREEN
+══════════════════════════════════════════ */
 .end-card {
-  background:var(--surface); border:1px solid var(--border);
-  border-radius:28px; padding:clamp(28px,6vw,50px);
-  width:100%; max-width:440px; text-align:center;
-  box-shadow:var(--shadow);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 28px; padding: clamp(28px,6vw,50px);
+  width: 100%; max-width: 440px; text-align: center;
+  box-shadow: var(--shadow);
+  animation: cardIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
 }
-.end-trophy { font-size:80px; display:block; margin-bottom:12px; animation:trophyBob 2s ease-in-out infinite; }
-@keyframes trophyBob{0%,100%{transform:translateY(0) rotate(-4deg);}50%{transform:translateY(-10px) rotate(4deg);}}
-.end-title  { font-size:clamp(26px,6vw,36px); font-weight:900; margin-bottom:6px; }
-.end-grade  { font-size:clamp(15px,4vw,18px); color:var(--muted); margin-bottom:20px; }
+.end-trophy {
+  font-size: 86px; display: block; margin-bottom: 12px;
+  animation: trophyBob 2s ease-in-out infinite;
+  filter: drop-shadow(0 0 20px rgba(251,191,36,0.4));
+}
+@keyframes trophyBob { 0%,100%{transform:translateY(0) rotate(-4deg);} 50%{transform:translateY(-12px) rotate(4deg);} }
+.end-title { font-size: clamp(26px,6vw,36px); font-weight: 900; margin-bottom: 6px; }
+.end-grade { font-size: clamp(15px,4vw,18px); color: var(--muted); margin-bottom: 20px; }
 
 .end-stats {
-  background:var(--card); border-radius:var(--radius);
-  padding:16px 20px; margin-bottom:20px;
-  display:flex; justify-content:space-around; gap:12px;
+  background: var(--card); border-radius: var(--radius);
+  padding: 16px 20px; margin-bottom: 16px;
+  display: flex; justify-content: space-around; gap: 8px;
 }
-.end-stat { text-align:center; }
-.end-stat-val { font-size:clamp(22px,5vw,30px); font-weight:900; color:var(--yellow); }
-.end-stat-lbl { font-size:12px; color:var(--muted); margin-top:2px; }
+.end-stat-val { font-size: clamp(22px,5vw,30px); font-weight: 900; color: var(--yellow); }
+.end-stat-lbl { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
 .rank-banner {
-  background:rgba(108,143,255,0.12); border:1px solid rgba(108,143,255,0.3);
-  border-radius:12px; padding:14px 16px;
-  margin-bottom:20px; font-size:16px; font-weight:700; color:var(--accent);
+  background: rgba(108,143,255,0.1); border: 1px solid rgba(108,143,255,0.25);
+  border-radius: 12px; padding: 14px 16px;
+  margin-bottom: 20px; font-size: 15px; font-weight: 700; color: var(--accent);
+  min-height: 52px; display: flex; align-items: center; justify-content: center;
 }
+.btn-row { display: flex; flex-direction: column; gap: 10px; }
 
-.btn-row { display:flex; flex-direction:column; gap:10px; }
+/* ══════════════════════════════════════════
+   JSONBIN CONFIG BANNER
+══════════════════════════════════════════ */
+.config-notice {
+  background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3);
+  border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+  font-size: 13px; color: var(--yellow); text-align: right; line-height: 1.7;
+}
+.config-notice a { color: var(--accent); }
 
-/* stars */
-.star-layer { position:fixed; inset:0; pointer-events:none; z-index:999; overflow:hidden; }
-.fstar { position:absolute; font-size:26px; animation:fstar 0.9s ease-out forwards; }
-@keyframes fstar{0%{opacity:0;transform:scale(0) rotate(0deg) translateY(0);}40%{opacity:1;transform:scale(1.3) rotate(120deg) translateY(-20px);}100%{opacity:0;transform:scale(0.5) rotate(260deg) translateY(-60px);}}
 </style>
 </head>
 <body>
 
+<!-- BG -->
 <div class="blob blob-1"></div>
 <div class="blob blob-2"></div>
 <div class="blob blob-3"></div>
+<div class="cloud cloud-1"></div>
+<div class="cloud cloud-2"></div>
+<div class="cloud cloud-3"></div>
 <div class="star-layer" id="starLayer"></div>
 
-<!-- ════════════ LEADERBOARD MODAL ════════════ -->
-<div class="modal-overlay hidden" id="lbOverlay" onclick="closeLB(event)">
-  <div class="modal" id="lbModal">
+<!-- ══════════════════════════════════════════
+     LEADERBOARD MODAL
+══════════════════════════════════════════ -->
+<div class="modal-overlay hidden" id="lbOverlay" onclick="closeLBOutside(event)">
+  <div class="modal">
     <div class="modal-head">
       <div class="modal-title">🏆 تابلوی امتیازات</div>
-      <button class="modal-close" onclick="closeLBBtn()">✕</button>
+      <button class="modal-close" onclick="closeLB()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="lb-filter" id="lbFilter">
-        <button class="lb-filter-btn active" onclick="setLBFilter('all',this)">همه</button>
-        <button class="lb-filter-btn" onclick="setLBFilter('easy',this)">آسان</button>
-        <button class="lb-filter-btn" onclick="setLBFilter('normal',this)">متوسط</button>
-        <button class="lb-filter-btn" onclick="setLBFilter('hard',this)">سخت</button>
+      <div class="lb-tabs">
+        <button class="lb-tab active" onclick="setTab('all',this)">همه</button>
+        <button class="lb-tab" onclick="setTab('easy',this)">😊 آسان</button>
+        <button class="lb-tab" onclick="setTab('normal',this)">🙂 متوسط</button>
+        <button class="lb-tab" onclick="setTab('hard',this)">😤 سخت</button>
       </div>
-      <div id="lbContent"><div class="lb-loading">⏳ در حال بارگذاری...</div></div>
+      <div id="lbContent"><div class="lb-loading">⏳</div></div>
     </div>
   </div>
 </div>
 
-<!-- ════════════ SCREEN: NAME ENTRY ════════════ -->
+<!-- ══════════════════════════════════════════
+     SCREEN: NAME
+══════════════════════════════════════════ -->
 <div class="screen" id="nameScreen">
   <div class="name-card">
     <span class="brand-icon">🎯</span>
@@ -435,19 +574,21 @@ body::before {
     <input class="name-input" id="nameInput"
       type="text" placeholder="اسمت رو بنویس..."
       maxlength="30" autocomplete="off"
-      onkeydown="if(event.key==='Enter') goToSettings()">
+      onkeydown="if(event.key==='Enter') goSettings()">
     <div class="name-error" id="nameError"></div>
 
-    <button class="btn-primary" onclick="goToSettings()">ادامه →</button>
-    <button class="btn-ghost"   onclick="openLB()">🏆 مشاهده تابلوی امتیازات</button>
+    <button class="btn-primary" onclick="goSettings()">ادامه ←</button>
+    <button class="btn-ghost"   onclick="openLB()">🏆 تابلوی امتیازات</button>
   </div>
 </div>
 
-<!-- ════════════ SCREEN: SETTINGS ════════════ -->
+<!-- ══════════════════════════════════════════
+     SCREEN: SETTINGS
+══════════════════════════════════════════ -->
 <div class="screen hidden" id="settingsScreen">
   <div class="settings-card">
     <button class="back-link" onclick="show('nameScreen')">← تغییر نام</button>
-    <div class="player-greeting" id="playerGreeting">سلام! آماده‌ای؟</div>
+    <div class="player-greeting" id="playerGreeting">سلام! آماده‌ای؟ 👋</div>
 
     <div class="setting-section">
       <div class="setting-label">📋 تعداد سوال هر مرحله</div>
@@ -461,7 +602,7 @@ body::before {
     <div class="setting-section">
       <div class="setting-label">🎮 سطح دشواری</div>
       <div class="chip-group">
-        <div class="chip"><input type="radio" id="easy"   name="diff" value="easy" checked><label for="easy">😊 آسان</label></div>
+        <div class="chip"><input type="radio" id="easy"   name="diff" value="easy" checked><label for="easy">😊 آسان — با راهنما</label></div>
         <div class="chip"><input type="radio" id="normal" name="diff" value="normal"><label for="normal">🙂 متوسط</label></div>
         <div class="chip"><input type="radio" id="hard"   name="diff" value="hard"><label for="hard">😤 سخت</label></div>
       </div>
@@ -479,19 +620,22 @@ body::before {
     <div class="sep"></div>
     <button class="btn-primary" onclick="startGame()">🚀 شروع بازی</button>
     <div style="height:10px"></div>
-    <button class="btn-ghost" onclick="openLB()">🏆 تابلوی امتیازات</button>
+    <button class="btn-ghost"   onclick="openLB()">🏆 تابلوی امتیازات</button>
   </div>
 </div>
 
-<!-- ════════════ SCREEN: GAME ════════════ -->
+<!-- ══════════════════════════════════════════
+     SCREEN: GAME
+══════════════════════════════════════════ -->
 <div class="screen hidden" id="gameScreen">
   <div class="game-wrap">
+
     <div class="top-bar">
-      <button class="icon-btn" onclick="confirmBack()" title="تنظیمات">←</button>
+      <button class="icon-btn" onclick="confirmBack()">←</button>
       <div class="level-pill" id="levelPill">مرحله ۱ — جدول ۲</div>
-      <div style="display:flex;gap:6px;align-items:center;">
-        <div class="score-pill">⭐ <span id="scoreEl">۰</span></div>
-        <button class="icon-btn" onclick="openLB()" title="تابلو">🏆</button>
+      <div style="display:flex;gap:6px;align-items:center">
+        <div class="score-pill" id="scorePill">⭐ <span id="scoreEl">۰</span></div>
+        <button class="icon-btn" onclick="openLB()">🏆</button>
       </div>
     </div>
 
@@ -503,7 +647,7 @@ body::before {
       <span id="qMeta">مرحله ۱ از ۸</span>
     </div>
 
-    <div class="answer-bubble">
+    <div class="answer-bubble" id="answerBubble">
       <div class="answer-label">حاصل ضرب</div>
       <div class="answer-number" id="answerNum">?</div>
     </div>
@@ -515,33 +659,24 @@ body::before {
 
     <div class="options-grid" id="optGrid"></div>
     <div class="feedback" id="feedback"></div>
+
   </div>
 </div>
 
-<!-- ════════════ SCREEN: END ════════════ -->
+<!-- ══════════════════════════════════════════
+     SCREEN: END
+══════════════════════════════════════════ -->
 <div class="screen hidden" id="endScreen">
   <div class="end-card">
     <span class="end-trophy" id="endTrophy">🏆</span>
-    <div class="end-title"  id="endTitle">تبریک!</div>
-    <div class="end-grade"  id="endGrade"></div>
-
+    <div class="end-title" id="endTitle">تبریک!</div>
+    <div class="end-grade" id="endGrade"></div>
     <div class="end-stats">
-      <div class="end-stat">
-        <div class="end-stat-val" id="endScore">۰</div>
-        <div class="end-stat-lbl">امتیاز</div>
-      </div>
-      <div class="end-stat">
-        <div class="end-stat-val" id="endMax">۰</div>
-        <div class="end-stat-lbl">حداکثر</div>
-      </div>
-      <div class="end-stat">
-        <div class="end-stat-val" id="endPct">۰٪</div>
-        <div class="end-stat-lbl">درصد</div>
-      </div>
+      <div class="end-stat"><div class="end-stat-val" id="endScore">۰</div><div class="end-stat-lbl">امتیاز</div></div>
+      <div class="end-stat"><div class="end-stat-val" id="endMax">۰</div><div class="end-stat-lbl">حداکثر</div></div>
+      <div class="end-stat"><div class="end-stat-val" id="endPct">۰٪</div><div class="end-stat-lbl">درصد</div></div>
     </div>
-
-    <div class="rank-banner" id="rankBanner">⏳ در حال ثبت امتیاز...</div>
-
+    <div class="rank-banner" id="rankBanner">⏳ در حال ثبت...</div>
     <div class="btn-row">
       <button class="btn-primary" onclick="location.reload()">🔄 بازی دوباره</button>
       <button class="btn-ghost"   onclick="openLB()">🏆 تابلوی امتیازات</button>
@@ -549,72 +684,81 @@ body::before {
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     SCRIPT
+══════════════════════════════════════════ -->
 <script>
-// ── helpers ─────────────────────────────────────────────
-const FARSI = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
-const toF = n => String(n).replace(/\d/g, d => FARSI[+d]);
-const $  = id => document.getElementById(id);
-const LEVELS = [2,3,4,5,6,7,8,9];
+/* ─── CONFIG ───────────────────────────────────────────────
+   JSONBin.io — رایگان، بدون نصب، فقط یه‌بار باید BIN_ID و API_KEY رو پر کنی.
 
+   مراحل:
+   1. برو به  https://jsonbin.io  و ثبت‌نام کن (رایگانه)
+   2. API Keys → Create Access Key → کپی کن
+   3. Bins → Create Bin → با این محتوا:  []
+   4. BIN ID رو از آدرس کپی کن  (مثلاً 6630f1...)
+   5. دو خط زیر رو پر کن و فایل رو ذخیره کن
+─────────────────────────────────────────────────────────── */
+const JSONBIN_ID  = 'YOUR_BIN_ID_HERE';    // ← BIN ID خودت رو اینجا بذار
+const JSONBIN_KEY = 'YOUR_API_KEY_HERE';   // ← API Key خودت رو اینجا بذار
+
+const API_BASE = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
+const HEADERS  = { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY };
+
+/* ─── HELPERS ─────────────────────────────────────────── */
+const FARSI = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+const toF   = n => String(n).replace(/\d/g, d => FARSI[+d]);
+const $     = id => document.getElementById(id);
+const LEVELS = [2,3,4,5,6,7,8,9];  // جدول ۲ تا ۹
 const DIFF_FA = { easy:'آسان', normal:'متوسط', hard:'سخت' };
 
+/* ─── STATE ───────────────────────────────────────────── */
+let playerName = '';
+let levelIdx   = 0;
+let qIdx       = 1;
+let score      = 0;
+let answer     = 0;
+let busy       = false;
+let hintUsed   = false;
+let qPerLevel  = 5;
+let difficulty = 'easy';
+let timeLimit  = 0;
+let timerSec   = 0;
+let timerHandle = null;
+let lbTab      = 'all';
+let allScores  = [];
+let teacherMode = false;
+
+/* ─── SCREEN MANAGER ──────────────────────────────────── */
 function show(id) {
   ['nameScreen','settingsScreen','gameScreen','endScreen'].forEach(s => {
     $(s).classList.toggle('hidden', s !== id);
   });
 }
 
-// ── state ────────────────────────────────────────────────
-let playerName  = '';
-let levelIdx    = 0;
-let qIdx        = 1;
-let score       = 0;
-let answer      = 0;
-let busy        = false;
-let hintUsed    = false;
-let qPerLevel   = 5;
-let difficulty  = 'easy';
-let timeLimit   = 0;
-let timerSec    = 0;
-let timerHandle = null;
-let lbFilter    = 'all';
-let allScores   = [];
-
-// teacher mode: type "teacher" as name, then hold Alt+click on trophy 3x
-let teacherClicks = 0;
-let teacherMode = false;
-
-// ── name screen ──────────────────────────────────────────
-function goToSettings() {
+/* ─── NAME SCREEN ─────────────────────────────────────── */
+function goSettings() {
   const raw = $('nameInput').value.trim();
-  if (!raw) { $('nameError').textContent = 'لطفاً اسمت رو بنویس'; return; }
+  if (!raw)       { $('nameError').textContent = 'لطفاً اسمت رو بنویس'; return; }
   if (raw.length < 2) { $('nameError').textContent = 'حداقل ۲ حرف'; return; }
   $('nameError').textContent = '';
   playerName = raw;
-
-  if (playerName.toLowerCase() === 'teacher') {
-    teacherMode = true;
-  }
-
+  teacherMode = (playerName.toLowerCase() === 'teacher');
   $('playerGreeting').textContent = `سلام ${playerName}! آماده‌ای؟ 👋`;
   show('settingsScreen');
 }
 
-// ── settings → start ─────────────────────────────────────
+/* ─── SETTINGS → START ────────────────────────────────── */
 function startGame() {
   qPerLevel  = +document.querySelector('input[name="qpl"]:checked').value;
   difficulty = document.querySelector('input[name="diff"]:checked').value;
   timeLimit  = +document.querySelector('input[name="time"]:checked').value;
-
   if (difficulty === 'hard' && timeLimit === 0) timeLimit = 20;
 
   $('hintBtn').style.display = difficulty === 'easy' ? 'inline-block' : 'none';
-  if (timeLimit > 0) $('timerTrack').classList.add('on');
-  else               $('timerTrack').classList.remove('on');
+  $('timerTrack').classList.toggle('on', timeLimit > 0);
 
   levelIdx = 0; qIdx = 1; score = 0;
   $('scoreEl').textContent = toF(0);
-
   show('gameScreen');
   newQuestion();
 }
@@ -625,7 +769,7 @@ function confirmBack() {
   show('settingsScreen');
 }
 
-// ── question ─────────────────────────────────────────────
+/* ─── QUESTION ────────────────────────────────────────── */
 function newQuestion() {
   if (levelIdx >= LEVELS.length) { endGame(); return; }
 
@@ -634,6 +778,7 @@ function newQuestion() {
   $('hintChip').classList.remove('show');
   $('feedback').textContent = '';
   $('feedback').className = 'feedback';
+  $('answerBubble').classList.remove('correct-glow','wrong-glow');
 
   const table = LEVELS[levelIdx];
   const mult  = Math.floor(Math.random() * 10) + 1;
@@ -645,81 +790,85 @@ function newQuestion() {
   void numEl.offsetWidth;
   numEl.classList.add('pop');
 
-  $('levelPill').textContent  = `مرحله ${toF(levelIdx+1)} — جدول ${toF(table)}`;
-  $('qCounter').textContent   = `سوال ${toF(qIdx)} از ${toF(qPerLevel)}`;
-  $('qMeta').textContent      = `مرحله ${toF(levelIdx+1)} از ${toF(LEVELS.length)}`;
+  $('levelPill').textContent = `مرحله ${toF(levelIdx+1)} — جدول ${toF(table)}`;
+  $('qCounter').textContent  = `سوال ${toF(qIdx)} از ${toF(qPerLevel)}`;
+  $('qMeta').textContent     = `مرحله ${toF(levelIdx+1)} از ${toF(LEVELS.length)}`;
 
   buildOptions();
   updateProgress();
   startTimer();
 }
 
-// ── options ──────────────────────────────────────────────
+/* ─── OPTIONS ─────────────────────────────────────────── */
 function buildOptions() {
   const grid = $('optGrid');
   grid.innerHTML = '';
-
   const pool = new Set([answer]);
-  let tries = 0;
-  while (pool.size < 4 && tries++ < 300) {
-    pool.add( (Math.floor(Math.random()*9)+1) * (Math.floor(Math.random()*10)+1) );
-  }
+  let t = 0;
+  while (pool.size < 4 && t++ < 300)
+    pool.add((Math.floor(Math.random()*9)+1)*(Math.floor(Math.random()*10)+1));
 
   const pairFor = p => {
     for (let a = 1; a <= 9; a++) {
       const b = p / a;
-      if (Number.isInteger(b) && b >= 1 && b <= 10)
-        return `${toF(a)} × ${toF(b)}`;
+      if (Number.isInteger(b) && b >= 1 && b <= 10) return `${toF(a)} × ${toF(b)}`;
     }
     return toF(p);
   };
 
-  [...pool].sort(() => Math.random()-0.5).forEach(prod => {
+  [...pool].sort(()=>Math.random()-.5).forEach(prod => {
     const btn = document.createElement('button');
-    btn.className   = 'opt-btn';
+    btn.className = 'opt-btn';
     btn.textContent = pairFor(prod);
     btn.onclick = () => pick(btn, prod);
     grid.appendChild(btn);
   });
 }
 
-// ── pick ─────────────────────────────────────────────────
+/* ─── PICK ────────────────────────────────────────────── */
 function pick(el, chosen) {
   if (busy) return;
   busy = true;
   stopTimer();
 
-  const fb = $('feedback');
-
   if (chosen === answer) {
     el.classList.add('correct');
+    $('answerBubble').classList.add('correct-glow');
     score += hintUsed ? 7 : 10;
     $('scoreEl').textContent = toF(score);
 
-    fb.textContent = hintUsed ? '👍 درست! (با راهنما)' : randPraise();
-    fb.className = 'feedback ok';
+    /* score bump animation */
+    const pill = $('scorePill');
+    pill.classList.remove('bump');
+    void pill.offsetWidth;
+    pill.classList.add('bump');
+
+    $('feedback').textContent = hintUsed ? '👍 درست! (با راهنما)' : randPraise();
+    $('feedback').className = 'feedback ok';
     spawnStars();
 
     qIdx++;
     if (qIdx > qPerLevel) {
       levelIdx++; qIdx = 1;
       if (levelIdx < LEVELS.length) {
-        fb.textContent = `🎊 مرحله ${toF(levelIdx+1)} شروع شد!`;
-        fb.className = 'feedback info';
+        $('feedback').textContent = `🎊 مرحله ${toF(levelIdx+1)} شروع شد!`;
+        $('feedback').className = 'feedback info';
         $('levelPill').textContent = `مرحله ${toF(levelIdx+1)} — جدول ${toF(LEVELS[levelIdx])}`;
-        setTimeout(() => { fb.textContent=''; newQuestion(); }, 1700);
+        setTimeout(() => { $('feedback').textContent=''; newQuestion(); }, 1700);
         return;
       }
     }
-    setTimeout(() => { fb.textContent=''; newQuestion(); }, 1300);
+    setTimeout(() => { $('feedback').textContent=''; newQuestion(); }, 1300);
 
   } else {
     el.classList.add('wrong');
-    fb.textContent = randWrong();
-    fb.className = 'feedback bad';
+    $('answerBubble').classList.add('wrong-glow');
+    $('feedback').textContent = randWrong();
+    $('feedback').className = 'feedback bad';
     setTimeout(() => {
       el.classList.remove('wrong');
-      fb.textContent = '';
+      $('answerBubble').classList.remove('wrong-glow');
+      $('feedback').textContent = '';
       busy = false;
       if (timeLimit > 0) resumeTimer();
     }, 900);
@@ -727,11 +876,11 @@ function pick(el, chosen) {
 }
 
 const PRAISES = ['🎉 آفرین! عالیه!','🌟 فوق‌العاده!','💪 درسته!','🔥 محشره!','✨ ممتاز!','⚡ سریع!'];
-const WRONGS  = ['❌ نه، دوباره!','😅 اشتباهه!','🤔 دقیق‌تر فکر کن!'];
+const WRONGS  = ['❌ نه، دوباره!','😅 اشتباهه!','🤔 دقیق‌تر فکر کن!','😬 نزدیک بود!'];
 const randPraise = () => PRAISES[Math.floor(Math.random()*PRAISES.length)];
 const randWrong  = () => WRONGS [Math.floor(Math.random()*WRONGS.length)];
 
-// ── hint ─────────────────────────────────────────────────
+/* ─── HINT ────────────────────────────────────────────── */
 function doHint() {
   if (hintUsed) return;
   hintUsed = true;
@@ -742,183 +891,214 @@ function doHint() {
   setTimeout(() => chip.classList.remove('show'), 4500);
 }
 
-// ── timer ─────────────────────────────────────────────────
+/* ─── TIMER ───────────────────────────────────────────── */
 function startTimer() {
   if (!timeLimit) return;
   timerSec = timeLimit;
   const bar = $('timerBar');
-  bar.style.transition='none'; bar.style.width='100%'; bar.className='timer-bar';
+  bar.style.transition = 'none'; bar.style.width = '100%'; bar.className = 'timer-bar';
   void bar.offsetWidth;
-  bar.style.transition=`width ${timeLimit}s linear`; bar.style.width='0%';
+  bar.style.transition = `width ${timeLimit}s linear`; bar.style.width = '0%';
   timerHandle = setInterval(tickTimer, 1000);
 }
 function resumeTimer() {
-  if (!timeLimit || timerSec<=0) return;
-  $('timerBar').style.transition=`width ${timerSec}s linear`;
-  $('timerBar').style.width='0%';
+  if (!timeLimit || timerSec <= 0) return;
+  $('timerBar').style.transition = `width ${timerSec}s linear`;
+  $('timerBar').style.width = '0%';
   timerHandle = setInterval(tickTimer, 1000);
 }
-function stopTimer() { clearInterval(timerHandle); timerHandle=null; }
-function tickTimer() {
+function stopTimer()  { clearInterval(timerHandle); timerHandle = null; }
+function tickTimer()  {
   timerSec--;
   const pct = timerSec / timeLimit;
-  $('timerBar').className = 'timer-bar' + (pct<0.2?' danger':pct<0.4?' warn':'');
-  if (timerSec<=0) { stopTimer(); onTimeout(); }
+  $('timerBar').className = 'timer-bar' + (pct < 0.2 ? ' danger' : pct < 0.4 ? ' warn' : '');
+  if (timerSec <= 0) { stopTimer(); onTimeout(); }
 }
 function onTimeout() {
   if (busy) return;
   busy = true;
-  $('feedback').textContent='⏰ وقت تمام شد!';
-  $('feedback').className='feedback bad';
+  $('feedback').textContent = '⏰ وقت تمام شد!';
+  $('feedback').className = 'feedback bad';
   setTimeout(() => {
-    $('feedback').textContent='';
+    $('feedback').textContent = '';
     qIdx++;
-    if (qIdx>qPerLevel) { levelIdx++; qIdx=1; }
+    if (qIdx > qPerLevel) { levelIdx++; qIdx = 1; }
     newQuestion();
   }, 1600);
 }
 
-// ── progress ─────────────────────────────────────────────
+/* ─── PROGRESS ────────────────────────────────────────── */
 function updateProgress() {
-  const done  = levelIdx*qPerLevel + (qIdx-1);
+  const done  = levelIdx * qPerLevel + (qIdx - 1);
   const total = LEVELS.length * qPerLevel;
-  $('progBar').style.width = (done/total*100)+'%';
+  $('progBar').style.width = (done / total * 100) + '%';
 }
 
-// ── stars ─────────────────────────────────────────────────
+/* ─── STARS ───────────────────────────────────────────── */
 function spawnStars() {
   const layer = $('starLayer');
-  ['⭐','🌟','✨','💫','🎉'].forEach((e,i) => {
-    const s=document.createElement('div');
-    s.className='fstar'; s.textContent=e;
-    s.style.left=(10+Math.random()*80)+'%';
-    s.style.top =(20+Math.random()*60)+'%';
-    s.style.animationDelay=(i*0.1)+'s';
+  ['⭐','🌟','✨','💫','🎉','⚡'].slice(0, 5).forEach((e, i) => {
+    const s = document.createElement('div');
+    s.className = 'fstar'; s.textContent = e;
+    s.style.left = (5 + Math.random() * 90) + '%';
+    s.style.top  = (10 + Math.random() * 75) + '%';
+    s.style.fontSize = (20 + Math.random() * 16) + 'px';
+    s.style.animationDelay = (i * 0.1) + 's';
     layer.appendChild(s);
-    setTimeout(()=>s.remove(),1200);
+    setTimeout(() => s.remove(), 1200);
   });
 }
 
-// ── end game + save score ─────────────────────────────────
+/* ─── END GAME + SAVE ─────────────────────────────────── */
 async function endGame() {
   const max = LEVELS.length * qPerLevel * 10;
   const pct = score / max;
-
-  const [trophy,title,grade] =
-    pct>=0.9 ? ['🏆','عالی!','تو یه قهرمان جدول ضربی! 🔥'] :
-    pct>=0.7 ? ['🥇','آفرین!','کارت خیلی خوب بود 👏'] :
-    pct>=0.5 ? ['🥈','خوب بود!','با تمرین بهتر می‌شی 💪'] :
-               ['🎯','تلاش کن!','دوباره امتحان کن، می‌تونی! 😊'];
+  const [trophy, title, grade] =
+    pct >= 0.9 ? ['🏆','عالی!','تو یه قهرمان جدول ضربی! 🔥'] :
+    pct >= 0.7 ? ['🥇','آفرین!','کارت خیلی خوب بود 👏'] :
+    pct >= 0.5 ? ['🥈','خوب بود!','با تمرین بهتر می‌شی 💪'] :
+                 ['🎯','تلاش کن!','دوباره امتحان کن، می‌تونی! 😊'];
 
   $('endTrophy').textContent = trophy;
   $('endTitle').textContent  = title;
   $('endGrade').textContent  = grade;
   $('endScore').textContent  = toF(score);
   $('endMax').textContent    = toF(max);
-  $('endPct').textContent    = toF(Math.round(pct*100)) + '٪';
+  $('endPct').textContent    = toF(Math.round(pct * 100)) + '٪';
   $('rankBanner').textContent = '⏳ در حال ثبت امتیاز...';
-
   show('endScreen');
+  spawnStars(); spawnStars();
 
-  // Save to leaderboard
   try {
-    const res = await fetch('/api/leaderboard', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: playerName,
-        score,
-        level: levelIdx + 1,
-        difficulty,
-        questionsPerLevel: qPerLevel
-      })
-    });
-    const data = await res.json();
-    if (data.success) {
-      $('rankBanner').textContent =
-        data.rank === 1
-          ? `🥇 تو اول شدی از ${toF(data.total)} نفر!`
-          : `🏅 رتبه ${toF(data.rank)} از ${toF(data.total)} نفر`;
-    } else {
-      $('rankBanner').textContent = '✅ بازی تموم شد!';
-    }
+    await saveScore({ name: playerName, score, difficulty, questionsPerLevel: qPerLevel });
+    const scores = await fetchScores();
+    const sorted = [...scores].sort((a,b) => b.score - a.score);
+    const rank   = sorted.findIndex(s => s.name.toLowerCase() === playerName.toLowerCase()) + 1;
+    $('rankBanner').textContent =
+      rank === 1 ? `🥇 تو اول شدی از ${toF(sorted.length)} نفر! 🎉`
+                 : `🏅 رتبه ${toF(rank)} از ${toF(sorted.length)} نفر`;
   } catch {
-    $('rankBanner').textContent = '✅ بازی تموم شد! (اتصال آفلاین)';
+    $('rankBanner').textContent = isConfigured()
+      ? '⚠️ خطا در ثبت — اینترنت رو چک کن'
+      : '⚙️ برای ثبت امتیاز، JSONBin رو تنظیم کن';
   }
 }
 
-// ── leaderboard ───────────────────────────────────────────
+/* ─── JSONBIN API ─────────────────────────────────────── */
+function isConfigured() {
+  return JSONBIN_ID !== 'YOUR_BIN_ID_HERE' && JSONBIN_KEY !== 'YOUR_API_KEY_HERE';
+}
+
+async function fetchScores() {
+  if (!isConfigured()) return [];
+  const res = await fetch(API_BASE + '/latest', { headers: HEADERS });
+  if (!res.ok) throw new Error('fetch failed');
+  const data = await res.json();
+  return Array.isArray(data.record) ? data.record : [];
+}
+
+async function saveScore(entry) {
+  if (!isConfigured()) return;
+  const scores = await fetchScores();
+
+  // Keep personal best only
+  const idx = scores.findIndex(s => s.name.toLowerCase() === entry.name.toLowerCase());
+  if (idx >= 0) {
+    if (scores[idx].score < entry.score) scores[idx] = { ...entry, date: new Date().toISOString() };
+  } else {
+    scores.push({ ...entry, date: new Date().toISOString() });
+  }
+
+  await fetch(API_BASE, {
+    method: 'PUT',
+    headers: HEADERS,
+    body: JSON.stringify(scores)
+  });
+}
+
+async function deleteScore(name) {
+  if (!isConfigured() || !teacherMode) return;
+  const scores = await fetchScores();
+  const filtered = scores.filter(s => s.name.toLowerCase() !== name.toLowerCase());
+  await fetch(API_BASE, { method:'PUT', headers:HEADERS, body:JSON.stringify(filtered) });
+}
+
+/* ─── LEADERBOARD UI ──────────────────────────────────── */
 async function openLB() {
   $('lbOverlay').classList.remove('hidden');
   await loadLB();
 }
-function closeLBBtn() { $('lbOverlay').classList.add('hidden'); }
-function closeLB(e)   { if (e.target === $('lbOverlay')) closeLBBtn(); }
+function closeLB() { $('lbOverlay').classList.add('hidden'); }
+function closeLBOutside(e) { if (e.target === $('lbOverlay')) closeLB(); }
 
-function setLBFilter(f, btn) {
-  lbFilter = f;
-  $('lbFilter').querySelectorAll('.lb-filter-btn').forEach(b => b.classList.remove('active'));
+function setTab(f, btn) {
+  lbTab = f;
+  document.querySelectorAll('.lb-tab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderLB();
 }
 
 async function loadLB() {
-  $('lbContent').innerHTML = '<div class="lb-loading">⏳ در حال بارگذاری...</div>';
+  $('lbContent').innerHTML = '<div class="lb-loading">⏳</div>';
+  if (!isConfigured()) {
+    $('lbContent').innerHTML = `
+      <div class="config-notice">
+        ⚙️ برای فعال کردن تابلوی امتیازات:<br>
+        ۱. برو به <a href="https://jsonbin.io" target="_blank">jsonbin.io</a> و ثبت‌نام کن<br>
+        ۲. یه Bin با محتوای <code>[]</code> بساز<br>
+        ۳. BIN_ID و API_KEY رو در فایل HTML پر کن
+      </div>`;
+    return;
+  }
   try {
-    const res  = await fetch('/api/leaderboard');
-    allScores  = await res.json();
+    allScores = await fetchScores();
     renderLB();
   } catch {
-    $('lbContent').innerHTML = '<div class="lb-empty">⚠️ خطا در بارگذاری. اتصال اینترنت را بررسی کن.</div>';
+    $('lbContent').innerHTML = '<div class="lb-empty">⚠️ خطا در بارگذاری. اینترنت رو چک کن.</div>';
   }
 }
 
 function renderLB() {
-  const filtered = lbFilter === 'all'
+  const filtered = lbTab === 'all'
     ? allScores
-    : allScores.filter(s => s.difficulty === lbFilter);
-
+    : allScores.filter(s => s.difficulty === lbTab);
   filtered.sort((a,b) => b.score - a.score);
 
   if (!filtered.length) {
-    $('lbContent').innerHTML = '<div class="lb-empty">هنوز کسی امتیاز ثبت نکرده!</div>';
+    $('lbContent').innerHTML = '<div class="lb-empty">🏜️ هنوز امتیازی ثبت نشده!</div>';
     return;
   }
 
-  const medalFor = i => ['🥇','🥈','🥉'][i] || `${toF(i+1)}.`;
-  const classFor = i => ['top1','top2','top3'][i] || '';
-  const diffColor = { easy:'#34d399', normal:'#6c8fff', hard:'#f87171' };
+  const medal = i => ['🥇','🥈','🥉'][i] || `${toF(i+1)}.`;
+  const cls   = i => ['top-1','top-2','top-3'][i] || '';
 
-  const html = filtered.map((s,i) => {
+  const rows = filtered.map((s, i) => {
     const isMe = s.name.toLowerCase() === playerName.toLowerCase();
-    const date = new Date(s.date).toLocaleDateString('fa-IR',{month:'short',day:'numeric'});
+    const date = s.date ? new Date(s.date).toLocaleDateString('fa-IR',{month:'short',day:'numeric'}) : '';
     return `
-      <div class="lb-row ${classFor(i)} ${isMe?'me':''}">
-        <div class="lb-rank">${medalFor(i)}</div>
-        <div>
+      <div class="lb-row ${cls(i)} ${isMe?'me':''}" style="animation-delay:${i*0.04}s">
+        <div class="lb-rank">${medal(i)}</div>
+        <div class="lb-info">
           <div class="lb-name">${esc(s.name)}${isMe?' (تو)':''}</div>
-          <div class="lb-meta" style="color:${diffColor[s.difficulty]||'#6b7280'}">
-            ${DIFF_FA[s.difficulty]||s.difficulty} · ${date}
-          </div>
+          <div class="lb-sub">${DIFF_FA[s.difficulty]||''} ${date?'· '+date:''}</div>
         </div>
-        <div class="lb-score">${toF(s.score)}</div>
-        <button class="lb-del" onclick="delPlayer('${esc(s.name)}')" title="حذف">🗑</button>
+        <div class="lb-score-val">${toF(s.score)}</div>
+        <button class="lb-del" onclick="delEntry('${esc(s.name)}')">🗑</button>
       </div>`;
   }).join('');
 
-  $('lbContent').innerHTML = `<div class="lb-list ${teacherMode?'teacher-mode':''}">${html}</div>`;
+  $('lbContent').innerHTML = `<div class="lb-list ${teacherMode?'teacher-mode':''}">${rows}</div>`;
 }
 
-async function delPlayer(name) {
-  if (!teacherMode) return;
+async function delEntry(name) {
   if (!confirm(`حذف امتیاز "${name}"؟`)) return;
-  try {
-    await fetch(`/api/leaderboard?name=${encodeURIComponent(name)}`, { method:'DELETE' });
-    await loadLB();
-  } catch { alert('خطا در حذف'); }
+  await deleteScore(name);
+  allScores = allScores.filter(s => s.name.toLowerCase() !== name.toLowerCase());
+  renderLB();
 }
 
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc = s => String(s).replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 </script>
 </body>
 </html>
