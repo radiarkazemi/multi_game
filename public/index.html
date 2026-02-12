@@ -698,11 +698,15 @@ body::before {
    4. BIN ID رو از آدرس کپی کن  (مثلاً 6630f1...)
    5. دو خط زیر رو پر کن و فایل رو ذخیره کن
 ─────────────────────────────────────────────────────────── */
-const JSONBIN_ID  = '$2a$10$qZxw1FtHe.7UpldJIczmfuU7llZwyHddH96i5jIWbAApxTg6vBakO';    // ← BIN ID خودت رو اینجا بذار
-const JSONBIN_KEY = '698df078d0ea881f40b538e1';   // ← API Key خودت رو اینجا بذار
+const JSONBIN_ID  = '698df078d0ea881f40b538e1';
+const JSONBIN_KEY = '$2a$10$qZxw1FtHe.7UpldJIczmfuU7llZwyHddH96i5jIWbAApxTg6vBakO';
 
 const API_BASE = `https://api.jsonbin.io/v3/b/${JSONBIN_ID}`;
-const HEADERS  = { 'Content-Type':'application/json', 'X-Master-Key': JSONBIN_KEY };
+const HEADERS  = {
+  'Content-Type': 'application/json',
+  'X-Master-Key': JSONBIN_KEY,
+  'X-Access-Key': JSONBIN_KEY
+};
 
 /* ─── HELPERS ─────────────────────────────────────────── */
 const FARSI = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
@@ -977,14 +981,21 @@ async function endGame() {
     $('rankBanner').textContent =
       rank === 1 ? `🥇 تو اول شدی از ${toF(sorted.length)} نفر! 🎉`
                  : `🏅 رتبه ${toF(rank)} از ${toF(sorted.length)} نفر`;
-  } catch {
+  } catch(err) {
+    console.error('endGame save error:', err);
     $('rankBanner').textContent = isConfigured()
-      ? '⚠️ خطا در ثبت — اینترنت رو چک کن'
+      ? `⚠️ خطا: ${err.message}`
       : '⚙️ برای ثبت امتیاز، JSONBin رو تنظیم کن';
   }
 }
 
 /* ─── JSONBIN API ─────────────────────────────────────── */
+/*
+   JSONBin read needs the bin to be PUBLIC or use the Access Key.
+   Make sure your bin is set to PUBLIC:
+   Bins → click your bin → Settings → Make Public ✓
+   OR keep it private and the X-Access-Key header will authenticate reads.
+*/
 function isConfigured() {
   return JSONBIN_ID !== 'YOUR_BIN_ID_HERE' && JSONBIN_KEY !== 'YOUR_API_KEY_HERE';
 }
@@ -992,14 +1003,20 @@ function isConfigured() {
 async function fetchScores() {
   if (!isConfigured()) return [];
   const res = await fetch(API_BASE + '/latest', { headers: HEADERS });
-  if (!res.ok) throw new Error('fetch failed');
+  if (!res.ok) {
+    const txt = await res.text();
+    console.error('JSONBin fetch error:', res.status, txt);
+    throw new Error(`HTTP ${res.status}: ${txt}`);
+  }
   const data = await res.json();
-  return Array.isArray(data.record) ? data.record : [];
+  const arr  = Array.isArray(data.record) ? data.record : [];
+  // Filter out the placeholder setup entry
+  return arr.filter(s => s && s.name && s.name !== 'test' && !s.setup);
 }
 
 async function saveScore(entry) {
   if (!isConfigured()) return;
-  const scores = await fetchScores();
+  const scores = await fetchScores(); // already filtered
 
   // Keep personal best only
   const idx = scores.findIndex(s => s.name.toLowerCase() === entry.name.toLowerCase());
@@ -1009,11 +1026,16 @@ async function saveScore(entry) {
     scores.push({ ...entry, date: new Date().toISOString() });
   }
 
-  await fetch(API_BASE, {
+  const res = await fetch(API_BASE, {
     method: 'PUT',
     headers: HEADERS,
     body: JSON.stringify(scores)
   });
+  if (!res.ok) {
+    const txt = await res.text();
+    console.error('JSONBin save error:', res.status, txt);
+    throw new Error(`Save HTTP ${res.status}`);
+  }
 }
 
 async function deleteScore(name) {
@@ -1053,8 +1075,16 @@ async function loadLB() {
   try {
     allScores = await fetchScores();
     renderLB();
-  } catch {
-    $('lbContent').innerHTML = '<div class="lb-empty">⚠️ خطا در بارگذاری. اینترنت رو چک کن.</div>';
+  } catch(err) {
+    console.error('loadLB error:', err);
+    $('lbContent').innerHTML = `
+      <div class="lb-empty">
+        ⚠️ خطا در بارگذاری<br>
+        <small style="color:var(--muted);font-size:12px;margin-top:8px;display:block">
+          ${esc(err.message)}<br>
+          BIN ID و API Key رو دوباره چک کن
+        </small>
+      </div>`;
   }
 }
 
