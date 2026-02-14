@@ -500,6 +500,47 @@ body::after {
   color:#92400e; line-height:1.8;
 }
 .config-notice a{color:var(--accent);}
+
+/* ══════════════════════════════════════════
+   STAR RATING WIDGET
+══════════════════════════════════════════ */
+.rating-section{margin-top:20px;padding-top:18px;border-top:1px solid var(--border);text-align:center;}
+.rating-label{font-size:13px;color:var(--muted);font-weight:600;margin-bottom:10px;}
+.stars-row{display:flex;justify-content:center;gap:6px;margin-bottom:8px;direction:ltr;}
+.star-btn{background:none;border:none;cursor:pointer;font-size:30px;line-height:1;transition:transform 0.15s ease,filter 0.15s;filter:grayscale(1) opacity(0.35);padding:2px;}
+.star-btn.lit,.star-btn:hover{filter:grayscale(0) opacity(1);transform:scale(1.2);}
+.rating-count{font-size:12px;color:var(--muted);font-weight:600;}
+.rating-thanks{font-size:14px;font-weight:700;color:var(--green);display:none;animation:chipIn 0.3s ease;}
+.rating-thanks.show{display:block;}
+.rating-avg{font-size:13px;color:var(--yellow);font-weight:700;margin-top:2px;}
+
+/* ── RATING WIDGET ── */
+.rating-box{
+  margin-top:18px; border-top:1px solid var(--border); padding-top:16px;
+}
+.rating-label{
+  font-size:13px; color:var(--muted); font-weight:600;
+  margin-bottom:10px; text-align:center;
+}
+.stars-row{display:flex; justify-content:center; gap:6px;}
+.star-btn{
+  background:none; border:none; cursor:pointer;
+  font-size:30px; line-height:1; padding:2px;
+  transition:transform 0.15s, filter 0.15s;
+  filter:grayscale(1) opacity(0.3);
+  -webkit-tap-highlight-color:transparent;
+}
+.star-btn.lit{filter:none; transform:scale(1.2); animation:starLit 0.3s ease;}
+@keyframes starLit{0%{transform:scale(0.7);}60%{transform:scale(1.5);}100%{transform:scale(1.2);}}
+.rating-msg{
+  margin-top:10px; text-align:center;
+  font-size:13px; font-weight:600; min-height:18px;
+}
+.rating-msg.sent{color:var(--green);}
+.rating-summary{
+  margin-top:6px; text-align:center;
+  font-size:12px; color:var(--muted); font-weight:600;
+}
 </style>
 </head>
 <body>
@@ -556,6 +597,21 @@ body::after {
 
     <button class="btn-primary" onclick="goSettings()">ادامه ←</button>
     <button class="btn-ghost"   onclick="openLB()">🏆 تابلوی امتیازات</button>
+
+    <!-- ⭐ STAR RATING -->
+    <div class="rating-section">
+      <div class="rating-label">از بازی خوشت اومد؟ ستاره بده! ⭐</div>
+      <div class="stars-row" id="starsRow">
+        <button class="star-btn" data-val="1" onclick="submitRating(1)" onmouseenter="hoverStars(1)" onmouseleave="unhoverStars()">⭐</button>
+        <button class="star-btn" data-val="2" onclick="submitRating(2)" onmouseenter="hoverStars(2)" onmouseleave="unhoverStars()">⭐</button>
+        <button class="star-btn" data-val="3" onclick="submitRating(3)" onmouseenter="hoverStars(3)" onmouseleave="unhoverStars()">⭐</button>
+        <button class="star-btn" data-val="4" onclick="submitRating(4)" onmouseenter="hoverStars(4)" onmouseleave="unhoverStars()">⭐</button>
+        <button class="star-btn" data-val="5" onclick="submitRating(5)" onmouseenter="hoverStars(5)" onmouseleave="unhoverStars()">⭐</button>
+      </div>
+      <div class="rating-thanks" id="ratingThanks">ممنون! نظرت ثبت شد 💛</div>
+      <div class="rating-avg"  id="ratingAvg"></div>
+      <div class="rating-count" id="ratingCount"></div>
+    </div>
   </div>
 </div>
 
@@ -715,6 +771,7 @@ function buildPool(table) {
 
 /* ─── STATE ───────────────────────────────────────────── */
 let playerName  = '';
+let playerId    = '';   // unique ID per device — survives page refresh
 let levelIdx    = 0;
 let qIdx        = 1;
 let score       = 0;
@@ -729,6 +786,21 @@ let timerHandle = null;
 let lbTab       = 'all';
 let allScores   = [];
 let teacherMode = false;
+
+/* ─── PLAYER ID ───────────────────────────────────────────
+   Each browser/device gets a unique ID stored in localStorage.
+   Two students named "Mohammad" on different devices → different IDs.
+   Same student on the same device always keeps their ID → score updated.
+──────────────────────────────────────────────────────────── */
+function getOrCreatePlayerId() {
+  let id = localStorage.getItem('zarb_player_id');
+  if (!id) {
+    // Generate a random unique ID
+    id = 'p_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    localStorage.setItem('zarb_player_id', id);
+  }
+  return id;
+}
 
 /* ─── SOUNDS (Web Audio API — no files needed) ────────── */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -793,6 +865,7 @@ function goSettings() {
   if (raw.length<2) { $('nameError').textContent = 'حداقل ۲ حرف'; return; }
   $('nameError').textContent = '';
   playerName  = raw;
+  playerId    = getOrCreatePlayerId();   // unique per device
   teacherMode = (playerName.toLowerCase() === 'teacher');
   $('playerGreeting').textContent = `سلام ${playerName}! آماده‌ای؟ 👋`;
   show('settingsScreen');
@@ -1050,34 +1123,45 @@ async function fetchScores() {
 
 async function upsertScore(entry) {
   if (!isConfigured()) return null;
-  // Check if player already has a score
+
+  // Look up by player_id — NOT by name
   const res1 = await fetch(
-    `${SB_URL}/rest/v1/scores?name=eq.${encodeURIComponent(entry.name)}&select=id,score`,
+    `${SB_URL}/rest/v1/scores?player_id=eq.${encodeURIComponent(entry.player_id)}&select=id,score`,
     { headers: SB_HEADERS }
   );
   const existing = await res1.json();
 
   if (existing.length > 0) {
-    if (existing[0].score >= entry.score) return { rank: null }; // not a new best
-    // Update existing row
+    // Same device played before — update if new score is higher
+    if (existing[0].score >= entry.score) return { improved: false };
     await fetch(`${SB_URL}/rest/v1/scores?id=eq.${existing[0].id}`, {
       method: 'PATCH',
       headers: SB_HEADERS,
-      body: JSON.stringify({ score: entry.score, difficulty: entry.difficulty, date: new Date().toISOString() })
+      body: JSON.stringify({
+        name:       entry.name,        // name can be updated (child changed their name)
+        score:      entry.score,
+        difficulty: entry.difficulty,
+        date:       new Date().toISOString()
+      })
     });
   } else {
-    // Insert new row
+    // New device / new player — always insert a fresh row
     await fetch(`${SB_URL}/rest/v1/scores`, {
       method: 'POST',
       headers: SB_HEADERS,
-      body: JSON.stringify({ name: entry.name, score: entry.score, difficulty: entry.difficulty })
+      body: JSON.stringify({
+        player_id:  entry.player_id,
+        name:       entry.name,
+        score:      entry.score,
+        difficulty: entry.difficulty
+      })
     });
   }
-  return true;
+  return { improved: true };
 }
 
-async function deleteScoreByName(name) {
-  await fetch(`${SB_URL}/rest/v1/scores?name=eq.${encodeURIComponent(name)}`, {
+async function deleteScoreById(player_id) {
+  await fetch(`${SB_URL}/rest/v1/scores?player_id=eq.${encodeURIComponent(player_id)}`, {
     method: 'DELETE', headers: SB_HEADERS
   });
 }
@@ -1105,9 +1189,9 @@ async function endGame() {
     return;
   }
   try {
-    await upsertScore({ name:playerName, score, difficulty });
-    const all    = await fetchScores();
-    const rank   = all.findIndex(s=>s.name.toLowerCase()===playerName.toLowerCase())+1;
+    await upsertScore({ player_id: playerId, name: playerName, score, difficulty });
+    const all  = await fetchScores();
+    const rank = all.findIndex(s => s.player_id === playerId) + 1;
     $('rankBanner').textContent =
       rank===1 ? `🥇 تو اول شدی از ${toF(all.length)} نفر! 🎉`
                : `🏅 رتبه ${toF(rank)} از ${toF(all.length)} نفر`;
@@ -1159,7 +1243,7 @@ function renderLB() {
   const medal=i=>['🥇','🥈','🥉'][i]||`${toF(i+1)}.`;
   const cls  =i=>['top-1','top-2','top-3'][i]||'';
   const rows=filtered.map((s,i)=>{
-    const isMe=s.name.toLowerCase()===playerName.toLowerCase();
+    const isMe = s.player_id === playerId;
     const date=s.date?new Date(s.date).toLocaleDateString('fa-IR',{month:'short',day:'numeric'}):'';
     return `
       <div class="lb-row ${cls(i)} ${isMe?'me':''}" style="animation-delay:${i*0.04}s">
@@ -1169,20 +1253,76 @@ function renderLB() {
           <div class="lb-sub">${DIFF_FA[s.difficulty]||''} ${date?'· '+date:''}</div>
         </div>
         <div class="lb-score-val">${toF(s.score)}</div>
-        <button class="lb-del" onclick="delEntry('${esc(s.name)}')">🗑</button>
+        <button class="lb-del" onclick="delEntry('${esc(s.player_id)}','${esc(s.name)}')">🗑</button>
       </div>`;
   }).join('');
   $('lbContent').innerHTML=`<div class="lb-list ${teacherMode?'teacher-mode':''}">${rows}</div>`;
 }
 
-async function delEntry(name) {
+async function delEntry(pid, name) {
   if (!confirm(`حذف امتیاز "${name}"؟`)) return;
-  await deleteScoreByName(name);
-  allScores=allScores.filter(s=>s.name.toLowerCase()!==name.toLowerCase());
+  await deleteScoreById(pid);
+  allScores = allScores.filter(s => s.player_id !== pid);
   renderLB();
 }
 
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+
+/* ─── STAR RATING ─────────────────────────────────────── */
+let ratingDone = false;
+
+function hoverStars(val) {
+  if (ratingDone) return;
+  document.querySelectorAll('.star-btn').forEach(b =>
+    b.classList.toggle('lit', +b.dataset.val <= val));
+}
+function unhoverStars() {
+  if (ratingDone) return;
+  document.querySelectorAll('.star-btn').forEach(b => b.classList.remove('lit'));
+}
+
+async function submitRating(val) {
+  if (ratingDone) return;
+  ratingDone = true;
+  // Lock stars on chosen value
+  document.querySelectorAll('.star-btn').forEach(b => {
+    b.classList.toggle('lit', +b.dataset.val <= val);
+    b.disabled = true; b.style.cursor = 'default';
+  });
+  const THANKS = ['ممنون! 🙏','عالیه! 💙','خوشحالم! 😊','باریکلا! 🌟','ممنونم! ❤️'];
+  $('ratingThanks').textContent = THANKS[val - 1];
+  $('ratingThanks').classList.add('show');
+
+  if (isConfigured()) {
+    try {
+      await fetch(SB_URL + '/rest/v1/ratings', {
+        method: 'POST',
+        headers: Object.assign({}, SB_HEADERS, {'Prefer':'return=minimal'}),
+        body: JSON.stringify({ stars: val })
+      });
+    } catch(e) { console.warn('Rating save failed:', e); }
+  }
+  loadRatingStats();
+}
+
+async function loadRatingStats() {
+  if (!isConfigured()) return;
+  try {
+    const res  = await fetch(SB_URL + '/rest/v1/ratings?select=stars', { headers: SB_HEADERS });
+    const rows = await res.json();
+    if (!Array.isArray(rows) || !rows.length) {
+      $('ratingCount').textContent = 'اولین نفری باش که ستاره میده!';
+      return;
+    }
+    const avg = (rows.reduce((s,r) => s + r.stars, 0) / rows.length).toFixed(1);
+    $('ratingAvg').textContent   = '⭐'.repeat(Math.round(+avg)) + '  میانگین ' + avg + ' از ۵';
+    $('ratingCount').textContent = toF(rows.length) + ' نفر امتیاز دادن';
+  } catch(e) { /* silent */ }
+}
+
+window.addEventListener('DOMContentLoaded', loadRatingStats);
+
 </script>
 </body>
 </html>
