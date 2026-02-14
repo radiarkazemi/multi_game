@@ -625,7 +625,7 @@ body::after {
     </div>
 
     <div class="answer-bubble" id="answerBubble">
-      <div class="answer-label">حاصل ضرب چندتاست؟</div>
+      <div class="answer-label">ضرب مربوط به این حاصل را انتخاب کن</div>
       <div class="answer-number" id="answerNum">?</div>
     </div>
 
@@ -703,8 +703,8 @@ const DIFF_FA = { easy:'ساده', normal:'متوسط', hard:'سخت' };
 let questionPool = [];  // shuffled list of {table, mult} for current level
 
 function buildPool(table) {
-  // Multipliers 2–9 only (exclude ×1 as teacher requested, exclude ×10 too)
-  const mults = [2,3,4,5,6,7,8,9];
+  // Multipliers 1–10, matching teacher's handwritten sheet exactly
+  const mults = [1,2,3,4,5,6,7,8,9,10];
   // Shuffle
   for (let i = mults.length-1; i > 0; i--) {
     const j = Math.floor(Math.random()*(i+1));
@@ -857,37 +857,35 @@ function buildOptions(correctTable, correctMult) {
   const grid = $('optGrid');
   grid.innerHTML = '';
 
-  // Generate 3 distractor EQUATIONS (different table × different multiplier)
-  // The display is "X چندتا" style — show as "۳ تا ۴" format
-  const distractors = new Set();
-  let tries = 0;
-  while (distractors.size < 3 && tries++ < 200) {
-    const t = Math.floor(Math.random()*8)+2;  // table 2-9
-    const m = Math.floor(Math.random()*8)+2;  // mult 2-9
-    const prod = t * m;
-    // Avoid same product as correct answer
-    if (prod !== answer) {
-      distractors.add(JSON.stringify({t, m, prod}));
-    }
-  }
+  // All options are from the SAME table (e.g. table of 3: 1×3, 5×3, 7×3, 9×3)
+  // Pick 3 wrong multipliers — different from the correct one
+  const allMults = [1,2,3,4,5,6,7,8,9,10];
+  const wrongMults = allMults.filter(m => m !== correctMult);
 
-  // Build option list: correct + 3 distractors
+  // Shuffle wrongMults and take 3
+  for (let i = wrongMults.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [wrongMults[i],wrongMults[j]] = [wrongMults[j],wrongMults[i]];
+  }
+  const distractorMults = wrongMults.slice(0, 3);
+
+  // Build all 4 options
   const opts = [
-    {t: correctTable, m: correctMult, prod: answer, isCorrect: true},
-    ...[...distractors].map(s => ({...JSON.parse(s), isCorrect: false}))
+    { mult: correctMult, prod: correctTable * correctMult, isCorrect: true },
+    ...distractorMults.map(m => ({ mult: m, prod: correctTable * m, isCorrect: false }))
   ];
 
-  // Shuffle
+  // Shuffle display order
   for (let i = opts.length-1; i > 0; i--) {
     const j = Math.floor(Math.random()*(i+1));
     [opts[i],opts[j]] = [opts[j],opts[i]];
   }
 
-  opts.forEach(({t, m, prod, isCorrect}) => {
+  opts.forEach(({mult, prod}) => {
     const btn = document.createElement('button');
     btn.className = 'opt-btn';
-    // Display: "۳ تا ۴" = Persian natural reading "three fours"
-    btn.textContent = `${toF(m)} تا ${toF(t)}`;
+    // Format: "table × m"  e.g. "۲ × ۳" — table on right in RTL
+    btn.textContent = `${toF(correctTable)} × ${toF(mult)}`;
     btn.onclick = () => pick(btn, prod);
     grid.appendChild(btn);
   });
@@ -968,8 +966,9 @@ function doHint() {
   hintUsed = true;
   $('hintBtn').disabled = true;
   const table = LEVELS[levelIdx];
+  const mult  = answer / table;
   const chip  = $('hintChip');
-  chip.textContent = `${toF(answer/table)} تا ${toF(table)} = ${toF(answer)}`;
+  chip.textContent = `💡 ${toF(table)} × ${toF(mult)} = ${toF(answer)}`;
   chip.classList.add('show');
   setTimeout(() => chip.classList.remove('show'), 4500);
 }
