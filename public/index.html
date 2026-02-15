@@ -665,7 +665,7 @@ body::after {
 
     <div class="top-bar">
       <button class="icon-btn" onclick="confirmBack()">←</button>
-      <div class="level-pill" id="levelPill">مرحله ۱ — جدول ۲</div>
+      <div class="level-pill" id="levelPill">مرحله ۱ — ضرب ۲</div>
       <div style="display:flex;gap:6px;align-items:center">
         <div class="score-pill" id="scorePill">⭐ <span id="scoreEl">۰</span></div>
         <button class="icon-btn" onclick="openLB()">🏆</button>
@@ -916,7 +916,7 @@ function newQuestion() {
   void numEl.offsetWidth;
   numEl.classList.add('pop');
 
-  $('levelPill').textContent = `مرحله ${toF(levelIdx+1)} — جدول ${toF(table)}`;
+  $('levelPill').textContent = `مرحله ${toF(levelIdx+1)} — ضرب ${toF(table)}`;
   $('qCounter').textContent  = `سوال ${toF(qIdx)} از ${toF(qPerLevel)}`;
   $('qMeta').textContent     = `مرحله ${toF(levelIdx+1)} از ${toF(LEVELS.length)}`;
 
@@ -1019,7 +1019,7 @@ function showLevelTransition(newLevelIdx, callback) {
   const el = $('levelTransition');
   $('ltEmoji').textContent = ['🎊','🚀','⭐','🔥','💎','💡','🌟','🏆'][newLevelIdx % 8];
   $('ltTitle').textContent = `آفرین! مرحله ${toF(newLevelIdx+1)}`;
-  $('ltSub').textContent   = `حالا جدول ضرب ${toF(table)} شروع می‌شه`;
+  $('ltSub').textContent   = `ضرب ${toF(table)} شروع می‌شه`;
   el.classList.remove('hide');
   // Remove after animation completes (2s total)
   setTimeout(() => {
