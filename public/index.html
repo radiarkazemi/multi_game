@@ -1192,10 +1192,18 @@ async function endGame() {
   try {
     await upsertScore({ player_id: playerId, name: playerName, score, difficulty });
     const all  = await fetchScores();
-    const rank = all.findIndex(s => s.player_id === playerId) + 1;
-    $('rankBanner').textContent =
-      rank===1 ? `🥇 تو اول شدی از ${toF(all.length)} نفر! 🎉`
-               : `🏅 رتبه ${toF(rank)} از ${toF(all.length)} نفر`;
+    // Match by name (case-insensitive) — player_id may be null in older rows
+    const rank = all.findIndex(
+      s => (s.player_id && s.player_id === playerId) ||
+           s.name.trim().toLowerCase() === playerName.trim().toLowerCase()
+    ) + 1;
+    if (rank === 0) {
+      $('rankBanner').textContent = `✅ امتیاز ${toF(score)} ثبت شد! (از ${toF(all.length)} نفر)`;
+    } else {
+      $('rankBanner').textContent =
+        rank===1 ? `🥇 تو اول شدی از ${toF(all.length)} نفر! 🎉`
+                 : `🏅 رتبه ${toF(rank)} از ${toF(all.length)} نفر`;
+    }
   } catch(e) {
     console.error(e);
     $('rankBanner').textContent='⚠️ خطا در ثبت: '+e.message;
@@ -1244,7 +1252,8 @@ function renderLB() {
   const medal=i=>['🥇','🥈','🥉'][i]||`${toF(i+1)}.`;
   const cls  =i=>['top-1','top-2','top-3'][i]||'';
   const rows=filtered.map((s,i)=>{
-    const isMe = s.player_id === playerId;
+    const isMe = (s.player_id && s.player_id === playerId) ||
+                 s.name.trim().toLowerCase() === playerName.trim().toLowerCase();
     const date=s.date?new Date(s.date).toLocaleDateString('fa-IR',{month:'short',day:'numeric'}):'';
     return `
       <div class="lb-row ${cls(i)} ${isMe?'me':''}" style="animation-delay:${i*0.04}s">
