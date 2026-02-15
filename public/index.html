@@ -644,7 +644,7 @@ body::after {
     <div class="setting-section">
       <div class="setting-label">⏱️ زمان هر سوال</div>
       <div class="chip-group">
-        <div class="chip"><input type="radio" id="t0"  name="time" value="0" checked><label for="t0">بی‌محدودیت</label></div>
+        <div class="chip"><input type="radio" id="t0"  name="time" value="0" checked><label for="t0">بدون محدودیت</label></div>
         <div class="chip"><input type="radio" id="t15" name="time" value="15"><label for="t15">۱۵ ثانیه</label></div>
         <div class="chip"><input type="radio" id="t30" name="time" value="30"><label for="t30">۳۰ ثانیه</label></div>
         <div class="chip"><input type="radio" id="t60" name="time" value="60"><label for="t60">۶۰ ثانیه</label></div>
@@ -681,7 +681,7 @@ body::after {
     </div>
 
     <div class="answer-bubble" id="answerBubble">
-      <div class="answer-label">ضرب مربوط به این حاصل را انتخاب کن</div>
+      <div class="answer-label">گزینه‌ی درست را انتخاب کن.</div>
       <div class="answer-number" id="answerNum">?</div>
     </div>
 
@@ -1132,8 +1132,9 @@ async function upsertScore(entry) {
   const existing = await res1.json();
 
   if (existing.length > 0) {
-    // Same device played before — update if new score is higher
-    if (existing[0].score >= entry.score) return { improved: false };
+    // Same device played before — update only if new score is strictly higher
+    // Using strict > so equal scores from different players are NOT blocked
+    if (existing[0].score > entry.score) return { improved: false };
     await fetch(`${SB_URL}/rest/v1/scores?id=eq.${existing[0].id}`, {
       method: 'PATCH',
       headers: SB_HEADERS,
